@@ -1,28 +1,51 @@
 import React, { Component } from 'react';
-import { Text, TouchableWithoutFeedback, TouchableOpacity, View } from 'react-native';
+import {
+    Text,
+    TouchableWithoutFeedback,
+    View,
+    UIManager,
+    LayoutAnimation, 
+    Platform, 
+} from 'react-native';
 import { connect } from 'react-redux';
 import { CardSection } from './common';
 import * as actions from '../actions';
 
 class ListItem extends Component {
 
-    renderDescription() {
-        const { library, selectedLibraryId } = this.props;
+    constructor() {
+        super();
+        if (Platform.OS === 'android') {
+            UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
+        }
+    }
 
-        if (library.id === selectedLibraryId) {
+    componentWillUpdate() {
+        LayoutAnimation.spring();
+    }
+
+    renderDescription() {
+        const { library, isExpanded } = this.props;
+
+        if (isExpanded) {
             console.log('Matched');
             return (
-                <Text>{library.description}</Text>  
+                <CardSection>
+                    <Text style={{ flex: 1 }}>
+                    {library.description}</Text>
+                </CardSection>
             );
         }
     }
 
     render() {
+
+        
         const { rowTitleStyle } = styles;
         const { id, title } = this.props.library;
 
         return (
-            <TouchableOpacity
+            <TouchableWithoutFeedback
                 onPress={() => this.props.selectLibrary(id)}
             >
                 <View>
@@ -33,7 +56,7 @@ class ListItem extends Component {
                     </CardSection>
                     {this.renderDescription()}
                 </View>
-            </TouchableOpacity>
+            </TouchableWithoutFeedback>
         );
     }
 }
@@ -47,8 +70,11 @@ const styles = {
 
 };
 
-const mapStateToProps = state => {
-    return { selectedLibraryId: state.selectedLibraryId };
+const mapStateToProps = (state, ownProps) => {
+
+    const isExpanded = state.selectedLibraryId === ownProps.library.id;
+
+    return { isExpanded };
 };
 
 export default connect(mapStateToProps, actions)(ListItem);
